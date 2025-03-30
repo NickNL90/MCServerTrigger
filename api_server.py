@@ -134,10 +134,7 @@ def download_file(filename):
 
 @app.route('/triggered', methods=['GET'])
 def is_triggered():
-    global triggered
-    current = triggered
-    triggered = False  # Reset na uitlezen
-    return {'triggered': current}
+    return {'triggered': triggered}
 
 def run_script(sid):
     global script_running
