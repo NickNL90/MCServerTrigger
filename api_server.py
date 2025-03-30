@@ -29,19 +29,6 @@ def sanitize_output(line):
     line = re.sub(r'PASSWORD = "[^"]+"', 'PASSWORD = "****"', line)
     line = re.sub(r'CHROME_PROXY = "[^"]+"', 'CHROME_PROXY = "****"', line)
     return line
-
-def run_script(sid):
-    global script_running, triggered
-    if script_running:
-        return
-    script_running = True
-    triggered = True  # Zet flag zodat poll_trigger.py dit oppikt
-
-    socketio.emit('output', {'data': 'Trigger verstuurd naar poller...'}, room=sid)
-    time.sleep(1)  # Optioneel: kleine vertraging
-    socketio.emit('output', {'data': 'SCRIPT_COMPLETED'}, room=sid)
-    script_running = False
-
     
 @app.route('/')
 def index():
@@ -144,18 +131,24 @@ def index():
 def download_file(filename):
     return send_from_directory('screens', filename)
 
+
 @app.route('/triggered', methods=['GET'])
 def is_triggered():
     global triggered
     current = triggered
-    triggered = False
+    triggered = False  # Reset na uitlezen
     return {'triggered': current}
 
-@app.route('/triggered', methods=['POST'])
-def set_triggered():
-    global triggered
-    triggered = True
-    return {'status': 'trigger set'}
+def run_script(sid):
+    global script_running
+    if script_running:
+        return
+    script_running = True
+
+    socketio.emit('output', {'data': 'Trigger verstuurd naar poller...'}, room=sid)
+    time.sleep(1)  # Optioneel: kleine vertraging
+    socketio.emit('output', {'data': 'SCRIPT_COMPLETED'}, room=sid)
+    script_running = False
 
 @socketio.on('start_script')
 def handle_start(data=None):
