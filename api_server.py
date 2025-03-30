@@ -32,6 +32,8 @@ def sanitize_output(line):
 
 def run_script(sid):
     global script_running, triggered
+    if script_running:
+        return
     script_running = True
     triggered = True  # Zet flag zodat poll_trigger.py dit oppikt
 
@@ -144,7 +146,10 @@ def download_file(filename):
 
 @app.route('/triggered', methods=['GET'])
 def is_triggered():
-    return {'triggered': triggered}
+    global triggered
+    current = triggered
+    triggered = False
+    return {'triggered': current}
 
 @app.route('/triggered', methods=['POST'])
 def set_triggered():
