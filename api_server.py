@@ -33,43 +33,14 @@ def sanitize_output(line):
 def run_script(sid):
     global script_running, triggered
     script_running = True
+    triggered = True  # Zet flag zodat poll_trigger.py dit oppikt
 
-    socketio.emit('output', {'data': 'Server wordt gestart...'}, room=sid)
-
-    try:
-        env = os.environ.copy()
-        env["USERNAME"] = os.getenv("USERNAME", "")
-        env["PASSWORD"] = os.getenv("PASSWORD", "")
-        env["CHROME_PROXY"] = os.getenv("CHROME_PROXY", "")
-        process = subprocess.Popen(
-            ["python3", "main.py"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-            env=env
-        )
-
-        for line in iter(process.stdout.readline, ''):
-            safe_line = sanitize_output(line.strip())
-            socketio.emit('output', {'data': safe_line}, room=sid)
-            time.sleep(0.01)
-
-        process.stdout.close()
-        process.wait()
-
-        if process.returncode == 0:
-            socketio.emit('output', {'data': 'Server is succesvol online!'}, room=sid)
-        else:
-            socketio.emit('output', {'data': 'Er was een probleem bij het starten van de server.'}, room=sid)
-
-    except Exception as e:
-        socketio.emit('output', {'data': f'Er is een probleem opgetreden: {str(e)}'}, room=sid)
-
+    socketio.emit('output', {'data': 'Trigger verstuurd naar poller...'}, room=sid)
+    time.sleep(1)  # Optioneel: kleine vertraging
     socketio.emit('output', {'data': 'SCRIPT_COMPLETED'}, room=sid)
     script_running = False
-    triggered = False  # 🔁 Reset na uitvoering
 
+    
 @app.route('/')
 def index():
     return """
